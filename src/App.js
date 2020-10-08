@@ -1,8 +1,8 @@
 import React from 'react';
-import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 
-function reducer(state, action) {
+function counterReducer(state = { count: 0 }, action) {
   switch (action.type) {
     case 'INCREMENT_COUNT':
       return {
@@ -19,23 +19,44 @@ function reducer(state, action) {
   }
 }
 
-const INITIAL_STATE = {
-  count: 0,
-};
+function nameReducer(state = { name: 'césar' }, action) {
+  switch (action.type) {
+    case 'UPDATE_NAME':
+      return {
+        ...state,
+        name: action.payload,
+      };
+    default:
+      return state;
+  }
+}
 
-const store = createStore(reducer, INITIAL_STATE);
+const rootReducer = combineReducers({
+  counterReducer,
+  nameReducer,
+});
+
+const INITIAL_STATE = {};
+
+const store = createStore(rootReducer, INITIAL_STATE);
 
 function App() {
   return (
     <Provider store={store}>
       <div>hi</div>
       <Counter />
+      <Name />
     </Provider>
   );
 }
 
 function Counter() {
-  const count = useSelector((state) => state.count);
+  const { count, name } = useSelector((state) => ({
+    ...state.counterReducer,
+    ...state.nameReducer,
+  }));
+  // const count = useSelector((state) => state.count);
+  // const name = useSelector((state) => state.name);
   const dispatch = useDispatch();
 
   function incrementCount() {
@@ -51,10 +72,27 @@ function Counter() {
 
   return (
     <>
-      <h2>counter: {count}</h2>
+      <h2>
+        counter: {count} by {name}
+      </h2>
       <button onClick={incrementCount}>increment</button>
       <button onClick={decrementCount}>decrement</button>
     </>
+  );
+}
+
+function Name() {
+  const dispatch = useDispatch();
+  function handleUpdateName(event) {
+    dispatch({
+      type: 'UPDATE_NAME',
+      payload: event.target.value,
+    });
+  }
+  return (
+    <div>
+      <input placeholder="Name please" onChange={handleUpdateName} />
+    </div>
   );
 }
 
